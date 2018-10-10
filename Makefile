@@ -21,6 +21,6 @@ $(INSTALL_DIR)%.o: $(SOURCE_DIR)%.cpp
 	@echo "Compiling " $< "..."
 
 clean: 
-	@rm -f $(COMMAND) $(OBJECTS)
+	@rm -rf $(INSTALL_DIR)
 	@echo "Cleaning project ..."
 
