@@ -12,15 +12,16 @@ void buildMasks(long** C, int c_size, char* pattern, int p_size, int remain_bits
         memset(C[i],-1,c_size*sizeof(long));
     }
 
-    for(int i = 0;i<p_size;i++){
+    for(int k = p_size-1;k>=0;k--){
+        int i = p_size-k-1;
         if(i<remain_bits){
             long set_i_0 = ~((long)1 << i);
-            C[pattern[i]][0] = C[pattern[i]][0] & set_i_0; 
+            C[pattern[k]][0] = C[pattern[k]][0] & set_i_0; 
         } else {
-            int j = ((i-remain_bits)/64)+1;
-            int i_l = (i-((j-1)*64))-remain_bits;
-            long set_i_0 = ~((long)1 << (i_l));
-            C[pattern[i]][j] = C[pattern[i]][j] & set_i_0;        
+            int j = ((i-remain_bits) << 6)+1;
+            int i_l = (i-((j-1) >> 6))-remain_bits;
+            long set_i_0 = ~((long)1 << (64-(i_l)-1));
+            C[pattern[k]][j] = C[pattern[k]][j] & set_i_0;        
         }
     }
 }
@@ -79,27 +80,28 @@ bool shiftor(char* pattern, char* text){
     int remain_bits = p_size%64;
     long** C = new long*[ALPHA_SIZE];
     
-    buildMasks2(C, c_size, pattern, p_size, remain_bits);
+    buildMasks(C, c_size, pattern, p_size, remain_bits);
 
     long* window = new long[c_size];
     memset(window,-1,c_size*sizeof(long));
 
     long set_i_1 = (1l << (remain_bits-1));
-    
+    int cont = 0;
     for(int i =0 ;i<t_size;i++){
         int letter = text[i];
         ShiftAndOr(window, C[letter], c_size);
         if((window[0] & set_i_1) == 0){
+            cont++;
             printf("%d\n", (i-p_size+1));
             ans = true;
         }
     }
-
+    cout << "number of occ - " << cont << endl;
     return ans;
 }
 
 int main(){
-    bool ans = shiftor("rranhaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "a arranhaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa aar arranhaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa aar areeee");
+    bool ans = shiftor("a", "a arranhaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa aarranhaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa aar areeee");
     if(ans) printf("true\n");
     else printf("false\n");
     return 0;
