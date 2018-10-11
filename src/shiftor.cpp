@@ -1,47 +1,106 @@
+#include <iostream>
 #include <cstring>
+
+using namespace std;
 
 #define ALPHA_SIZE 128
 
-bool shiftor(char* pattern, char* text){
-    int p_size = strlen(pattern);
-    int t_size = strlen(text);
-    int c_size = ((p_size - 1) >> 6) + 1;
-    long** C = new long*[ALPHA_SIZE];
-
-    buildMasks(C, c_size, pattern, p_size);
-
-    // TODO running with the window in the text and making shift or
-}
-
-void buildMasks(long** C, int c_size, char* pattern, int p_size){
-    int remain_bits = p_size%64;
+void buildMasks(long** C, int c_size, char* pattern, int p_size, int remain_bits){
+    
     for(int i = 0;i<ALPHA_SIZE;i++){
         C[i] = new long[c_size];
-        memset(C[i],-1,sizeof(long*));
+        memset(C[i],-1,c_size*sizeof(long));
     }
 
     for(int i = 0;i<p_size;i++){
         if(i<remain_bits){
-            C[pattern[i]][0] = C[pattern[i]][0] & (~(1 << (remain_bits-i-1))); 
+            long set_i_0 = ~((long)1 << i);
+            C[pattern[i]][0] = C[pattern[i]][0] & set_i_0; 
         } else {
             int j = ((i-remain_bits)/64)+1;
             int i_l = (i-((j-1)*64))-remain_bits;
-            C[pattern[i]][j] = C[pattern[i]][j] & (~(1 << (64-i_l)));        
+            long set_i_0 = ~((long)1 << (i_l));
+            C[pattern[i]][j] = C[pattern[i]][j] & set_i_0;        
         }
     }
 }
 
-void ShiftAndOr(long* p, long* c, int p_size){
+void And(long* c, long* mask, int c_size){
+    for(int i = 0;i<c_size;i++){
+        c[i] &= mask[i];
+    }
+}
+
+void Shift(long* p, int p_size){
     p[0] <<= 1;
     for(int i = 1;i<p_size;i++){
-        p[i-1] |= (p[i] < 0) ? 1 : 0;
-        c[i-1] |= p[i-1]; //OR
+        p[i-1] |= (p[i] < 0) ? 1l : 0l;
         p[i] <<= 1; 
     }
-    c[p_size-1] |= p[p_size-1];
+}
+
+void buildMasks2(long** C, int c_size, char* pattern, int p_size, int remain_bits){
+    
+    for(int i = 0;i<ALPHA_SIZE;i++){
+        C[i] = new long[c_size];
+        memset(C[i],-1,c_size*sizeof(long));
+    }
+
+    long* pos_mask = new long[c_size];
+    memset(pos_mask,-1,c_size*sizeof(long));
+    pos_mask[c_size-1] &= ~(1l);
+    long* one = new long[c_size];
+    memset(one,0,c_size*sizeof(long));
+    one[c_size-1] |= 1l;
+
+    for(int i =0;i<p_size;i++){
+        And(C[pattern[i]], pos_mask, c_size);
+        Shift(pos_mask, c_size);
+        pos_mask[c_size-1] |= 1l;
+    }
+}
+
+
+void ShiftAndOr(long* w, long* c, int c_size){
+    w[0] <<= 1l;
+    for(int i = 1;i<c_size;i++){
+        w[i-1] |= (w[i] < 0) ? 1l : 0l;
+        w[i-1] |= c[i-1]; //OR
+        w[i] <<= 1l; 
+    }
+    w[c_size-1] |= c[c_size-1];
+}
+
+bool shiftor(char* pattern, char* text){
+    bool ans = false;
+    int p_size = strlen(pattern);
+    int t_size = strlen(text);
+    int c_size = ((p_size - 1) >> 6) + 1;
+    int remain_bits = p_size%64;
+    long** C = new long*[ALPHA_SIZE];
+    
+    buildMasks2(C, c_size, pattern, p_size, remain_bits);
+
+    long* window = new long[c_size];
+    memset(window,-1,c_size*sizeof(long));
+
+    long set_i_1 = (1l << (remain_bits-1));
+    
+    for(int i =0 ;i<t_size;i++){
+        int letter = text[i];
+        ShiftAndOr(window, C[letter], c_size);
+        if((window[0] & set_i_1) == 0){
+            printf("%d\n", (i-p_size+1));
+            ans = true;
+        }
+    }
+
+    return ans;
 }
 
 int main(){
-    shiftor("ar", "a aranha arranha");
+    bool ans = shiftor("rranhaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "a arranhaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa aar arranhaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa aar areeee");
+    if(ans) printf("true\n");
+    else printf("false\n");
     return 0;
 }
