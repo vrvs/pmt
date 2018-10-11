@@ -1,30 +1,10 @@
 #include <iostream>
 #include <cstring>
+#include "algorithms.h"
 
 using namespace std;
 
 #define ALPHA_SIZE 128
-
-void buildMasks(long** C, int c_size, char* pattern, int p_size, int remain_bits){
-    
-    for(int i = 0;i<ALPHA_SIZE;i++){
-        C[i] = new long[c_size];
-        memset(C[i],-1,c_size*sizeof(long));
-    }
-
-    for(int k = p_size-1;k>=0;k--){
-        int i = p_size-k-1;
-        if(i<remain_bits){
-            long set_i_0 = ~((long)1 << i);
-            C[pattern[k]][0] = C[pattern[k]][0] & set_i_0; 
-        } else {
-            int j = ((i-remain_bits) << 6)+1;
-            int i_l = (i-((j-1) >> 6))-remain_bits;
-            long set_i_0 = ~((long)1 << (64-(i_l)-1));
-            C[pattern[k]][j] = C[pattern[k]][j] & set_i_0;        
-        }
-    }
-}
 
 void And(long* c, long* mask, int c_size){
     for(int i = 0;i<c_size;i++){
@@ -40,7 +20,7 @@ void Shift(long* p, int p_size){
     }
 }
 
-void buildMasks2(long** C, int c_size, char* pattern, int p_size, int remain_bits){
+void buildMasks(long** C, int c_size, char* pattern, int p_size, int remain_bits){
     
     for(int i = 0;i<ALPHA_SIZE;i++){
         C[i] = new long[c_size];
@@ -55,7 +35,7 @@ void buildMasks2(long** C, int c_size, char* pattern, int p_size, int remain_bit
     one[c_size-1] |= 1l;
 
     for(int i =0;i<p_size;i++){
-        And(C[pattern[i]], pos_mask, c_size);
+        And(C[(int)pattern[i]], pos_mask, c_size);
         Shift(pos_mask, c_size);
         pos_mask[c_size-1] |= 1l;
     }
@@ -72,10 +52,10 @@ void ShiftAndOr(long* w, long* c, int c_size){
     w[c_size-1] |= c[c_size-1];
 }
 
-bool shiftor(char* pattern, char* text){
+bool Shiftor(char* pattern, char* text){
     bool ans = false;
     int p_size = strlen(pattern);
-    int t_size = strlen(text);
+    long t_size = strlen(text);
     int c_size = ((p_size - 1) >> 6) + 1;
     int remain_bits = p_size%64;
     long** C = new long*[ALPHA_SIZE];
@@ -88,21 +68,24 @@ bool shiftor(char* pattern, char* text){
     long set_i_1 = (1l << (remain_bits-1));
     int cont = 0;
     for(int i =0 ;i<t_size;i++){
+
         int letter = text[i];
         ShiftAndOr(window, C[letter], c_size);
+
         if((window[0] & set_i_1) == 0){
             cont++;
-            printf("%d\n", (i-p_size+1));
+            //printf("%d\n", (i-p_size+1));
             ans = true;
+            return true;
         }
     }
-    cout << "number of occ - " << cont << endl;
+    //cout << "number of occ - " << cont << endl;
     return ans;
 }
 
-int main(){
-    bool ans = shiftor("a", "a arranhaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa aarranhaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa aar areeee");
+/*int main(){
+    bool ans = Shiftor("a", "a arranhaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa aarranhaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa aar areeee");
     if(ans) printf("true\n");
     else printf("false\n");
     return 0;
-}
+}*/

@@ -1,6 +1,8 @@
 #include <iostream>
+#include <fstream>
 #include <getopt.h>
 #include <vector>
+#include "algorithms.h"
 
 using namespace std;
 
@@ -12,8 +14,8 @@ string pattern = "";
 vector<string> textfiles = vector<string>(0);
 
 void PrintAlgorithms(){
-	cout << "alg1" << endl;
-	cout << "alg2" << endl;
+	cout << "ShiftOr" << endl;
+	cout << "AhoCorasick" << endl;
 	cout << "alg3" << endl;
 	cout << "alg4" << endl;
 }
@@ -98,11 +100,11 @@ void ProcessParameters(int argc, char** argv, int index){
 			textfiles.push_back(argv[i]);
 		}
 		
-		cout << "The pattern is: " << pattern << endl;
+		/*cout << "The pattern is: " << pattern << endl;
 		cout << "The text files are: " << endl; 
 		for(auto it = textfiles.begin();it!=textfiles.end();it++){
 			cout << "- " << *it << endl;
-		}
+		}*/
 	} else {
 		//TODO raise error "there isnt enough arguments"
 		cout << "There isn't enough arguments" << endl;	
@@ -116,5 +118,14 @@ int main(int argc, char **argv){
 	} catch (const char* msg){
 		cout << msg << endl;
 	}
+
+	ifstream file1(textfiles[0]);
+	string text;
+	while(getline(file1, text)){
+		if(Shiftor((char*)pattern.c_str(), (char*)text.c_str()))
+			cout << text << endl;
+	}
+
+	//Shiftor((char*)"arranhaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa aar", (char*)"a arranhaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa aarranhaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa aar areeee");
 	return 0;
 }
