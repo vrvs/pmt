@@ -20,8 +20,21 @@ void Shift(long* p, int p_size){
     }
 }
 
-void buildMasks(long** C, int c_size, char* pattern, int p_size, int remain_bits){
-    
+void ShiftAndOr(long* w, long* c, int c_size){
+    w[0] <<= 1l;
+    for(int i = 1;i<c_size;i++){
+        w[i-1] |= (w[i] < 0) ? 1l : 0l;
+        w[i-1] |= c[i-1]; //OR
+        w[i] <<= 1l; 
+    }
+    w[c_size-1] |= c[c_size-1];
+}
+
+long** buildMasks(char* pattern){
+    int p_size = strlen(pattern);
+    int c_size = ((p_size - 1) >> 6) + 1;
+    long** C = new long*[ALPHA_SIZE];
+
     for(int i = 0;i<ALPHA_SIZE;i++){
         C[i] = new long[c_size];
         memset(C[i],-1,c_size*sizeof(long));
@@ -35,39 +48,28 @@ void buildMasks(long** C, int c_size, char* pattern, int p_size, int remain_bits
     one[c_size-1] |= 1l;
 
     for(int i =0;i<p_size;i++){
-        And(C[(int)pattern[i]], pos_mask, c_size);
+        int letter = pattern[i];
+        And(C[letter], pos_mask, c_size);
         Shift(pos_mask, c_size);
         pos_mask[c_size-1] |= 1l;
     }
+
+    return C;
 }
 
-
-void ShiftAndOr(long* w, long* c, int c_size){
-    w[0] <<= 1l;
-    for(int i = 1;i<c_size;i++){
-        w[i-1] |= (w[i] < 0) ? 1l : 0l;
-        w[i-1] |= c[i-1]; //OR
-        w[i] <<= 1l; 
-    }
-    w[c_size-1] |= c[c_size-1];
-}
-
-bool Shiftor(char* pattern, char* text){
+bool ShiftOr(char* pattern, char* text, long** C){
     bool ans = false;
     int p_size = strlen(pattern);
     long t_size = strlen(text);
     int c_size = ((p_size - 1) >> 6) + 1;
     int remain_bits = p_size%64;
-    long** C = new long*[ALPHA_SIZE];
-    
-    buildMasks(C, c_size, pattern, p_size, remain_bits);
 
     long* window = new long[c_size];
     memset(window,-1,c_size*sizeof(long));
 
     long set_i_1 = (1l << (remain_bits-1));
-    int cont = 0;
-    for(int i =0 ;i<t_size;i++){
+    long cont = 0;
+    for(long i = 0;i<t_size;i++){
 
         int letter = text[i];
         ShiftAndOr(window, C[letter], c_size);
@@ -80,6 +82,54 @@ bool Shiftor(char* pattern, char* text){
         }
     }
     //cout << "number of occ - " << cont << endl;
+    return ans;
+}
+
+bool Wu_Manber(char* pattern, char* text, long** C, int r){
+    bool ans = false;
+    int p_size = strlen(pattern);
+    long t_size = strlen(text);
+    int c_size = ((p_size - 1) >> 6) + 1;
+    int remain_bits = p_size%64;
+
+    long** windows = new long*[r+1];
+    for(int i  =0;i<r+1;i++){
+        windows[i] = new long[c_size];
+        memset(windows[i],-1,c_size*sizeof(long));
+    } 
+
+    long set_i_1 = (1l << (remain_bits-1));
+    long cont = 0;
+    
+    for(long i = 0;i<t_size;i++){
+
+        int letter = text[i];
+        ShiftAndOr(windows[0], C[letter], c_size);
+        long* w_prev = windows[0];
+
+        for(int j = 1;j<r+1;j++){
+            long* w_prev2 = windows[j];
+            ShiftAndOr(windows[j], C[letter], c_size);
+            long* aux1=new long[c_size]; long* aux2=new long[c_size];
+            for(int k = 0;k<c_size;k++){
+                aux1[k]=windows[j-1][k];
+                aux2[k] = w_prev[k];
+            }
+            Shift(aux1,c_size);
+            Shift(aux2,c_size);
+            And(windows[j], aux1, c_size);
+            And(windows[j], aux2 , c_size);
+            And(windows[j], w_prev, c_size);
+            
+            w_prev = w_prev2;
+            delete aux1; delete aux2;
+        }
+        if((windows[r][0] & set_i_1) == 0){
+            cont++;
+            ans = true;
+            return true;
+        }
+    }
     return ans;
 }
 

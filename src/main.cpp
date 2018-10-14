@@ -6,6 +6,7 @@
 
 using namespace std;
 
+
 string algorithm_name = "";
 string patternfile = "";
 int occ_count = -1;
@@ -16,7 +17,7 @@ vector<string> textfiles = vector<string>(0);
 void PrintAlgorithms(){
 	cout << "ShiftOr" << endl;
 	cout << "AhoCorasick" << endl;
-	cout << "alg3" << endl;
+	cout << "WuManber" << endl;
 	cout << "alg4" << endl;
 }
 
@@ -63,7 +64,11 @@ int ProcessOptions(int argc, char **argv){
 
 			case 'a':
 				algorithm_name = optarg;
-				// TODO Verify if it's a valid algorithm name				
+				if(algorithm_name.compare("ShiftOr") && algorithm_name.compare("AhoCorasick") && 
+					algorithm_name.compare("WuManber") && algorithm_name.compare("alg4")){
+					PrintAlgorithms();
+					exit(0);
+				}
 				cout << "using algorithm: " << algorithm_name << endl;
 				break;
 				
@@ -111,19 +116,34 @@ void ProcessParameters(int argc, char** argv, int index){
 	}
 }
 
+void chooseAlgorithm(){
+}
+
 int main(int argc, char **argv){
 	try {
 		int index = ProcessOptions(argc, argv);
 		ProcessParameters(argc, argv, index);
+		chooseAlgorithm();
 	} catch (const char* msg){
 		cout << msg << endl;
 	}
 
 	ifstream file1(textfiles[0]);
 	string text;
+	
+	long** C = buildMasks((char*)pattern.c_str());
+
 	while(getline(file1, text)){
-		if(Shiftor((char*)pattern.c_str(), (char*)text.c_str()))
-			cout << text << endl;
+
+		// need to use switch????
+		if(!algorithm_name.compare("ShiftOr")){
+			if(ShiftOr((char*)pattern.c_str(), (char*)text.c_str(), C))
+				cout << text << endl;
+		} else if(!algorithm_name.compare("WuManber")){
+			if(Wu_Manber((char*)pattern.c_str(), (char*)text.c_str(), C, edit_num))
+				cout << text << endl;
+		}
+		
 	}
 
 	//Shiftor((char*)"arranhaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa aar", (char*)"a arranhaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa aarranhaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa aar areeee");
