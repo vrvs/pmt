@@ -118,9 +118,9 @@ void aho_corasick(string text, vector<string> patterns) {
 	}
 }
 
-int main() {
+/*int main() {
 	vector<string> patterns = {"he","she","his","hers"};
-	string text = "ushershis";/*
+	string text = "ushershis";
 	build_go_to(patterns);
 	for(auto value : go_to) {
 		if(value.second!=0) cout << "state: " << floor(value.first/alphabet_size) << ", char: " << (char)(value.first%alphabet_size) << ", next_state: " << value.second << endl;
@@ -141,7 +141,7 @@ int main() {
 			cout << endl;
 		}
 	}
-	*/
+	
 	cout << "Text: "<< text << endl;
 	cout << "Patterns: ";
 	for(int i=0; i < patterns.size(); i++) {
@@ -151,4 +151,4 @@ int main() {
 	cout << endl;
 	aho_corasick(text, patterns);
 	return 0;
-}
+}*/

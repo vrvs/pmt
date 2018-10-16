@@ -85,7 +85,7 @@ bool ShiftOr(char* pattern, char* text, long** C){
     return ans;
 }
 
-bool Wu_Manber(char* pattern, char* text, long** C, int r){
+bool WuManber(char* pattern, char* text, long** C, int r){
     bool ans = false;
     int p_size = strlen(pattern);
     long t_size = strlen(text);
