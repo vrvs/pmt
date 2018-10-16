@@ -57,8 +57,8 @@ long** buildMasks(char* pattern){
     return C;
 }
 
-bool ShiftOr(char* pattern, char* text, long** C){
-    bool ans = false;
+int ShiftOr(char* pattern, char* text, long** C){
+    int ans = 0;
     int p_size = strlen(pattern);
     long t_size = strlen(text);
     int c_size = ((p_size - 1) >> 6) + 1;
@@ -77,16 +77,17 @@ bool ShiftOr(char* pattern, char* text, long** C){
         if((window[0] & set_i_1) == 0){
             cont++;
             //printf("%d\n", (i-p_size+1));
-            ans = true;
-            return true;
+            ans++;
+            //return true;
         }
     }
     //cout << "number of occ - " << cont << endl;
+    delete [] window;
     return ans;
 }
 
-bool WuManber(char* pattern, char* text, long** C, int r){
-    bool ans = false;
+int WuManber(char* pattern, char* text, long** C, int r){
+    int ans = 0;
     int p_size = strlen(pattern);
     long t_size = strlen(text);
     int c_size = ((p_size - 1) >> 6) + 1;
@@ -126,10 +127,13 @@ bool WuManber(char* pattern, char* text, long** C, int r){
         }
         if((windows[r][0] & set_i_1) == 0){
             cont++;
-            ans = true;
-            return true;
+            ans++;
+            //cout << "i: " << i << endl;
+            // return true;
         }
     }
+    
+    delete [] windows;
     return ans;
 }
 

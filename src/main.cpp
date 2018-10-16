@@ -162,6 +162,8 @@ void runPMT(){
 		for(string file_string : textfiles){
 			ifstream textfile(file_string);
 			string line;
+			int occ;
+			int occ_count = 0;
 
 			if(!textfile.good()){
 				cout << "pmt: " << file_string << ": File doesn't exist" << endl;
@@ -172,11 +174,11 @@ void runPMT(){
 				flag = false;
 				switch(algorithm){
 					case Shift_Or:
-						if(ShiftOr((char*)pattern.c_str(), (char*)line.c_str(), C))
+						if((occ = ShiftOr((char*)pattern.c_str(), (char*)line.c_str(), C)))
 							flag = true;
 						break;
 					case Wu_Manber:
-						if(WuManber((char*)pattern.c_str(), (char*)line.c_str(), C, edit_num))
+						if((occ = WuManber((char*)pattern.c_str(), (char*)line.c_str(), C, edit_num)))
 							flag = true;
 						break;
 					case Aho_Corasick:
@@ -188,13 +190,20 @@ void runPMT(){
 					default:
 						break;
 				}
-				if(flag){
+				if(flag && !count_occ){
 					if(textfiles.size() > 1)
 						cout << file_string << ": ";
 					cout << line << endl;
 				}
+				occ_count += occ;
+			}
+			if(count_occ){
+				if(textfiles.size() > 1)
+						cout << file_string << ": ";
+				cout << occ_count << endl;
 			}
 		}
+		delete [] C;
 	}
 }
 
