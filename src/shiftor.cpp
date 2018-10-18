@@ -57,8 +57,8 @@ long** buildMasks(char* pattern){
     return C;
 }
 
-int ShiftOr(char* pattern, char* text, long** C){
-    int ans = 0;
+long ShiftOr(char* pattern, char* text, long** C){
+    long ans = 0;
     int p_size = strlen(pattern);
     long t_size = strlen(text);
     int c_size = ((p_size - 1) >> 6) + 1;
@@ -68,16 +68,15 @@ int ShiftOr(char* pattern, char* text, long** C){
     memset(window,-1,c_size*sizeof(long));
 
     long set_i_1 = (1l << (remain_bits-1));
-    long cont = 0;
+    
     for(long i = 0;i<t_size;i++){
 
         int letter = text[i];
         ShiftAndOr(window, C[letter], c_size);
 
         if((window[0] & set_i_1) == 0){
-            cont++;
-            //printf("%d\n", (i-p_size+1));
             ans++;
+            //printf("%d\n", (i-p_size+1));
             //return true;
         }
     }
@@ -86,47 +85,65 @@ int ShiftOr(char* pattern, char* text, long** C){
     return ans;
 }
 
-int WuManber(char* pattern, char* text, long** C, int r){
-    int ans = 0;
+long WuManber(char* pattern, char* text, long** C, int r){
+    long ans = 0;
     int p_size = strlen(pattern);
     long t_size = strlen(text);
     int c_size = ((p_size - 1) >> 6) + 1;
     int remain_bits = p_size%64;
 
     long** windows = new long*[r+1];
+    long** old = new long*[r+1];
     for(int i  =0;i<r+1;i++){
         windows[i] = new long[c_size];
+        old[i] = new long[c_size];
+        memset(old[i],-1,c_size*sizeof(long));
         memset(windows[i],-1,c_size*sizeof(long));
     } 
 
     long set_i_1 = (1l << (remain_bits-1));
-    long cont = 0;
     
     for(long i = 0;i<t_size;i++){
 
         int letter = text[i];
-        ShiftAndOr(windows[0], C[letter], c_size);
-        long* w_prev = windows[0];
+        /*for(int i1 = 0;i1<r+1;i1++)
+            for(int i2 = 0;i2<c_size;i2++) old[i1][i2] = windows[i1][i2];*/
+
+        long* aux = new long[c_size]; for(int i1 =0;i1<c_size;i1++) aux[i1] = old[0][i1] = windows[0][i1];
+        ShiftAndOr(aux, C[letter], c_size);
+        for(int i1 =0;i1<c_size;i1++) windows[0][i1] = aux[i1];
+        delete aux;
+        //long* w_prev = windows[0];
 
         for(int j = 1;j<r+1;j++){
-            long* w_prev2 = windows[j];
-            ShiftAndOr(windows[j], C[letter], c_size);
-            long* aux1=new long[c_size]; long* aux2=new long[c_size];
+            long* s1 = new long[c_size];
+            long* s2 = new long[c_size];
+            long* s3 = new long[c_size];
+            //long* s4 = new long[c_size];
+
+            //long* w_prev2 = new long[c_size];
+            //long* aux1=new long[c_size]; long* aux2=new long[c_size];
             for(int k = 0;k<c_size;k++){
-                aux1[k]=windows[j-1][k];
-                aux2[k] = w_prev[k];
+                old[j][k] = windows[j][k];
+                s1[k] = old[j-1][k];
+                s2[k] = windows[j-1][k];
+                s3[k] = s1[k];
+                //windows[j][k] = old[j][k];
+                // w_prev2[i] = old[j][k];
+                // aux1[k]= windows[j-1][k];
+                // aux2[k] = w_prev[k];
             }
-            Shift(aux1,c_size);
-            Shift(aux2,c_size);
-            And(windows[j], aux1, c_size);
-            And(windows[j], aux2 , c_size);
-            And(windows[j], w_prev, c_size);
+            Shift(s2,c_size); // s3
+            Shift(s3,c_size);
+            ShiftAndOr(windows[j], C[letter], c_size);
+            And(windows[j], s1, c_size);
+            And(windows[j], s2 , c_size);
+            And(windows[j], s3, c_size);
             
-            w_prev = w_prev2;
-            delete aux1; delete aux2;
+            //w_prev = w_prev2;
+            delete s1; delete s2; delete s3;
         }
         if((windows[r][0] & set_i_1) == 0){
-            cont++;
             ans++;
             //cout << "i: " << i << endl;
             // return true;

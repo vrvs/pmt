@@ -162,8 +162,8 @@ void runPMT(){
 		for(string file_string : textfiles){
 			ifstream textfile(file_string);
 			string line;
-			int occ;
-			int occ_count = 0;
+			long occ;
+			long occ_count = 0;
 
 			if(!textfile.good()){
 				cout << "pmt: " << file_string << ": File doesn't exist" << endl;
@@ -191,16 +191,22 @@ void runPMT(){
 						break;
 				}
 				if(flag && !count_occ){
-					if(textfiles.size() > 1)
-						cout << file_string << ": ";
-					cout << line << endl;
+					if(textfiles.size() > 1){
+						printf("%s: ", (char*)file_string.c_str());
+						//cout << file_string << ": ";
+					}
+					printf("%s\n", (char*)line.c_str());
+					// cout << line << endl;
 				}
 				occ_count += occ;
 			}
 			if(count_occ){
-				if(textfiles.size() > 1)
-						cout << file_string << ": ";
-				cout << occ_count << endl;
+				if(textfiles.size() > 1){
+					printf("%s: ", (char*)file_string.c_str());
+					// cout << file_string << ": ";
+				}
+				printf("%ld\n", occ_count);
+				// cout << occ_count << endl;
 			}
 		}
 		delete [] C;
