@@ -33,19 +33,16 @@ void ShiftAndOr(long* w, long* c, int c_size){
 long** buildMasks(char* pattern){
     int p_size = strlen(pattern);
     int c_size = ((p_size - 1) >> 6) + 1;
-    long** C = new long*[ALPHA_SIZE];
+    long** C = (long **)malloc(ALPHA_SIZE * sizeof(long *));
 
     for(int i = 0;i<ALPHA_SIZE;i++){
-        C[i] = new long[c_size];
+        C[i] = (long *)malloc(c_size * sizeof(long));
         memset(C[i],-1,c_size*sizeof(long));
     }
 
-    long* pos_mask = new long[c_size];
+    long* pos_mask = (long *)malloc(c_size * sizeof(long));
     memset(pos_mask,-1,c_size*sizeof(long));
     pos_mask[c_size-1] &= ~(1l);
-    long* one = new long[c_size];
-    memset(one,0,c_size*sizeof(long));
-    one[c_size-1] |= 1l;
 
     for(int i =0;i<p_size;i++){
         int letter = pattern[i];
@@ -64,7 +61,7 @@ long ShiftOr(char* pattern, char* text, long** C){
     int c_size = ((p_size - 1) >> 6) + 1;
     int remain_bits = p_size%64;
 
-    long* window = new long[c_size];
+    long* window =  (long *)malloc(c_size * sizeof(long));
     memset(window,-1,c_size*sizeof(long));
 
     long set_i_1 = (1l << (remain_bits-1));
@@ -80,7 +77,6 @@ long ShiftOr(char* pattern, char* text, long** C){
             //return true;
         }
     }
-    //cout << "number of occ - " << cont << endl;
     delete [] window;
     return ans;
 }
@@ -92,13 +88,15 @@ long WuManber(char* pattern, char* text, long** C, int r){
     int c_size = ((p_size - 1) >> 6) + 1;
     int remain_bits = p_size%64;
 
-    long** windows = new long*[r+1];
-    long** old = new long*[r+1];
+    long** windows = (long **)malloc((r+1) * sizeof(long*));
+    long** old = (long **)malloc((r+1) * sizeof(long*));
     for(int i  =0;i<r+1;i++){
-        windows[i] = new long[c_size];
-        old[i] = new long[c_size];
+        windows[i] =  (long *)malloc(c_size * sizeof(long));
+        old[i] =  (long *)malloc(c_size * sizeof(long));
         memset(old[i],-1,c_size*sizeof(long));
         memset(windows[i],-1,c_size*sizeof(long));
+        if(i>0)
+            windows[i][c_size-1] = -2;
     } 
 
     long set_i_1 = (1l << (remain_bits-1));
@@ -106,41 +104,31 @@ long WuManber(char* pattern, char* text, long** C, int r){
     for(long i = 0;i<t_size;i++){
 
         int letter = text[i];
-        /*for(int i1 = 0;i1<r+1;i1++)
-            for(int i2 = 0;i2<c_size;i2++) old[i1][i2] = windows[i1][i2];*/
 
-        long* aux = new long[c_size]; for(int i1 =0;i1<c_size;i1++) aux[i1] = old[0][i1] = windows[0][i1];
+        long* aux = (long *)malloc(c_size * sizeof(long)); 
+        for(int i1 =0;i1<c_size;i1++) aux[i1] = old[0][i1] = windows[0][i1];
         ShiftAndOr(aux, C[letter], c_size);
         for(int i1 =0;i1<c_size;i1++) windows[0][i1] = aux[i1];
         delete aux;
-        //long* w_prev = windows[0];
 
         for(int j = 1;j<r+1;j++){
-            long* s1 = new long[c_size];
-            long* s2 = new long[c_size];
-            long* s3 = new long[c_size];
-            //long* s4 = new long[c_size];
-
-            //long* w_prev2 = new long[c_size];
-            //long* aux1=new long[c_size]; long* aux2=new long[c_size];
+            long* s1 =  (long *)malloc(c_size * sizeof(long));
+            long* s2 =  (long *)malloc(c_size * sizeof(long));
+            long* s3 =  (long *)malloc(c_size * sizeof(long));
+            
             for(int k = 0;k<c_size;k++){
                 old[j][k] = windows[j][k];
                 s1[k] = old[j-1][k];
                 s2[k] = windows[j-1][k];
                 s3[k] = s1[k];
-                //windows[j][k] = old[j][k];
-                // w_prev2[i] = old[j][k];
-                // aux1[k]= windows[j-1][k];
-                // aux2[k] = w_prev[k];
             }
-            Shift(s2,c_size); // s3
+            Shift(s2,c_size);
             Shift(s3,c_size);
             ShiftAndOr(windows[j], C[letter], c_size);
             And(windows[j], s1, c_size);
             And(windows[j], s2 , c_size);
             And(windows[j], s3, c_size);
             
-            //w_prev = w_prev2;
             delete s1; delete s2; delete s3;
         }
         if((windows[r][0] & set_i_1) == 0){
