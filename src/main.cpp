@@ -6,30 +6,43 @@
 
 using namespace std;
 
+enum Algorithm { Shift_Or, Wu_Manber, Aho_Corasick, Alg4, Undefined };
+
 string algorithm_name = "";
+Algorithm algorithm = Undefined;
 string patternfile = "";
-int occ_count = -1;
+bool count_occ = false;
 int edit_num = 0;
 string pattern = "";
 vector<string> textfiles = vector<string>(0);
+vector<string> patterns = vector<string>(0);
+int args_index = 1;
 
-void PrintAlgorithms(){
-	cout << "ShiftOr" << endl;
-	cout << "AhoCorasick" << endl;
-	cout << "alg3" << endl;
-	cout << "alg4" << endl;
+void PrintHelp(){
+	cout << "Usage: ./pmt [options] pattern textfile [textfile...]" << endl << endl;
+	cout << "Options:" << endl;
+	cout << "  -e, --edit e-max                  An integer e-max corresponding to the edit distance" << endl;
+	cout << "  -p, --pattern patternfile         Search for every pattern contained in patternfile" << endl;
+	cout << "  -a, --algorithm algorithm-name    Uses the algorithm indicated by algorithm-name. Supported algorithms:" << endl;
+	cout << "     - ShiftOr" << endl;
+	cout << "     - AhoCorasick" << endl;
+	cout << "     - WuManber" << endl;
+	cout << "     - Alg4" << endl;
+	cout << "  -c, --count                       Weather set, prints just the total occurrences of the pattern(s)" << endl;
 }
 
-int ProcessOptions(int argc, char **argv){
+void ProcessOptions(int argc, char **argv){
+
+	string cur_patt;
+	ifstream p_file;
 	
-	int index = 1;
+	const char* short_opts = "e:p:a:ch";
 	
-	const char* short_opts = "e:p:a:c:h";
 	const option long_opts[] = {
 		{"edit", required_argument, nullptr, 'e'},
 		{"pattern", required_argument, nullptr, 'p'},
 		{"algorithm", required_argument, nullptr, 'a'},
-		{"count", required_argument, nullptr, 'c'},
+		{"count", no_argument, nullptr, 'c'},
 		{"help", no_argument, nullptr, 'h'},
 		{nullptr, no_argument, nullptr, 0}
 	};
@@ -38,8 +51,8 @@ int ProcessOptions(int argc, char **argv){
 		const auto opt = getopt_long(argc, argv, short_opts, long_opts, nullptr);
 		
 		if(opt == -1) break;
-		else if(opt == 'h') index++;
-		else index+=2;
+		else if(opt == 'h' || opt == 'c') args_index++;
+		else args_index+=2;
 		
 		switch(opt){
 			case 'e':
@@ -53,35 +66,44 @@ int ProcessOptions(int argc, char **argv){
 					throw "The edit number can't be less than zero.";
 				}
 
-				cout << "edit number: " << edit_num << endl;
+				//cout << "edit number: " << edit_num << endl;
 				break;
 
 			case 'p':
 				patternfile = optarg;
-				cout << "pattern file: " << patternfile << endl;
+				p_file.open(patternfile);
+				
+				while(getline(p_file,cur_patt))
+					patterns.push_back(cur_patt);
+				p_file.close();
+
+				//cout << "pattern file: " << patternfile << endl;
 				break;
 
 			case 'a':
 				algorithm_name = optarg;
-				// TODO Verify if it's a valid algorithm name				
-				cout << "using algorithm: " << algorithm_name << endl;
+				if (!algorithm_name.compare("ShiftOr")){
+					algorithm = Shift_Or;
+				} else if (!algorithm_name.compare("WuManber")){
+					algorithm = Wu_Manber;
+				} else if (!algorithm_name.compare("AhoCorasick")) {
+					algorithm = Aho_Corasick;
+				} else if (!algorithm_name.compare("Alg4")) {
+					algorithm = Alg4;
+				} else {
+					PrintHelp();
+					exit(0);
+				}
+
+				//cout << "using algorithm: " << algorithm_name << endl;
 				break;
 				
 			case 'c':
-				try {
-					occ_count = stoi(optarg);
-				} catch (const exception &err) {
-					throw "The occurence count must be an integer.";
-				}
-				if(occ_count < 0){
-					throw "The occurence count can't be less than zero.";
-				}
-
-				cout << "occurence count: " << occ_count << endl; 
+				count_occ = true;
 				break;
 
 			case 'h':
-				PrintAlgorithms();
+				PrintHelp();
 				exit(0);
 				break;
 
@@ -89,14 +111,15 @@ int ProcessOptions(int argc, char **argv){
 				break;
 		}
 	}
-	return index;
 }
 
-void ProcessParameters(int argc, char** argv, int index){
-	if(index+1 < argc){
-		pattern = argv[index++];
-	
-		for(int i = index;i<argc;i++){
+void ProcessParameters(int argc, char** argv){
+	if(args_index+1 < argc){
+		pattern = argv[args_index];
+		args_index += 1;
+		patterns.push_back(pattern);
+		
+		for(int i = args_index;i<argc;i++){
 			textfiles.push_back(argv[i]);
 		}
 		
@@ -107,25 +130,118 @@ void ProcessParameters(int argc, char** argv, int index){
 		}*/
 	} else {
 		//TODO raise error "there isnt enough arguments"
-		cout << "There isn't enough arguments" << endl;	
+		//cout << "There isn't enough arguments" << endl;
+		PrintHelp();
+		exit(0);
+	}
+}
+
+void chooseAlgorithm(){
+	if(algorithm == Undefined){
+		if(patterns.size() == 1){
+			if(!edit_num)
+				algorithm = Shift_Or;
+			else
+				algorithm = Wu_Manber;
+		} else {
+			if(!edit_num)
+				algorithm = Aho_Corasick;
+			else
+				algorithm = Alg4;
+		}
+	}
+}
+
+void runPMT(){
+	long** C;
+	bool flag = false;
+	for(string pattern_string : patterns){
+		if((algorithm == Shift_Or) || (algorithm == Wu_Manber)){
+			C = buildMasks((char*)pattern_string.c_str());
+		}
+		for(string file_string : textfiles){
+			ifstream textfile(file_string);
+			string line;
+			long occ;
+			long occ_count = 0;
+
+			if(!textfile.good()){
+				cout << "pmt: " << file_string << ": File doesn't exist" << endl;
+				continue;
+			}
+
+			while(getline(textfile, line)){
+				flag = false;
+				switch(algorithm){
+					case Shift_Or:
+						if((occ = ShiftOr((char*)pattern.c_str(), (char*)line.c_str(), C)))
+							flag = true;
+						break;
+					case Wu_Manber:
+						if((occ = WuManber((char*)pattern.c_str(), (char*)line.c_str(), C, edit_num)))
+							flag = true;
+						break;
+					case Aho_Corasick:
+						//Valdemiro coloca aqui a chamada pro aho-corasick
+						break;
+					case Alg4:
+						//Valdemiro coloca aqui a chamada pro alg4 (Ukkonen???)
+						break;
+					default:
+						break;
+				}
+				if(flag && !count_occ){
+					if(textfiles.size() > 1){
+						printf("%s: ", (char*)file_string.c_str());
+						//cout << file_string << ": ";
+					}
+					printf("%s\n", (char*)line.c_str());
+					// cout << line << endl;
+				}
+				occ_count += occ;
+			}
+			if(count_occ){
+				if(textfiles.size() > 1){
+					printf("%s: ", (char*)file_string.c_str());
+					// cout << file_string << ": ";
+				}
+				printf("%ld\n", occ_count);
+				// cout << occ_count << endl;
+			}
+		}
+		delete [] C;
 	}
 }
 
 int main(int argc, char **argv){
 	try {
-		int index = ProcessOptions(argc, argv);
-		ProcessParameters(argc, argv, index);
+		ProcessOptions(argc, argv);
+		ProcessParameters(argc, argv);
+		chooseAlgorithm();
+		runPMT();
 	} catch (const char* msg){
-		cout << msg << endl;
+		PrintHelp();
+		cout << "error: " << msg << endl;
+		exit(0);
 	}
 
-	ifstream file1(textfiles[0]);
+	/*ifstream file1(textfiles[0]);
 	string text;
-	while(getline(file1, text)){
-		if(Shiftor((char*)pattern.c_str(), (char*)text.c_str()))
-			cout << text << endl;
-	}
+	
+	long** C = buildMasks((char*)pattern.c_str()());
 
-	//Shiftor((char*)"arranhaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa aar", (char*)"a arranhaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa aarranhaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa aar areeee");
+	while(getline(file1, text)){
+
+		// need to use switch????
+		if(!algorithm_name.compare("ShiftOr")){
+			if(ShiftOr((char*)pattern.c_str(), (char*)text.c_str(), C))
+				cout << text << endl;
+		} else if(!algorithm_name.compare("WuManber")){
+			if(WuManber((char*)pattern.c_str(), (char*)text.c_str(), C, edit_num))
+				cout << text << endl;
+		}
+		
+	}*/
+
 	return 0;
 }
