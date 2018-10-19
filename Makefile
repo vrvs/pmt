@@ -1,6 +1,6 @@
 CC = g++
 
-CC_FLAGS = -std=c++14 -Wall
+CC_FLAGS = -std=c++14 -Wall -O3
 
 SOURCE_DIR = src/
 INSTALL_DIR = bin/

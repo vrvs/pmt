@@ -153,7 +153,7 @@ void chooseAlgorithm(){
 }
 
 void runPMT(){
-	long** C;
+	long** C = NULL;
 	bool flag = false;
 	for(string pattern_string : patterns){
 		if((algorithm == Shift_Or) || (algorithm == Wu_Manber)){
@@ -162,7 +162,7 @@ void runPMT(){
 		for(string file_string : textfiles){
 			ifstream textfile(file_string);
 			string line;
-			long occ;
+			long occ = 0;
 			long occ_count = 0;
 
 			if(!textfile.good()){
@@ -209,7 +209,8 @@ void runPMT(){
 				// cout << occ_count << endl;
 			}
 		}
-		delete [] C;
+		if(C!=NULL)
+			delete [] C;
 	}
 }
 
