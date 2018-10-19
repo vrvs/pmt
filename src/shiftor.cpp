@@ -4,7 +4,7 @@
 
 using namespace std;
 
-#define ALPHA_SIZE 128
+#define ALPHA_SIZE 256
 
 inline void And(long* c, long* mask, int c_size){
     for(int i = 0;i<c_size;i++){
@@ -59,10 +59,10 @@ inline void ShiftAndOr(long* w, long* c, int c_size){
 long** buildMasks(char* pattern){
     int p_size = strlen(pattern);
     int c_size = ((p_size - 1) >> 6) + 1;
-    long** C = (long**)malloc(ALPHA_SIZE*sizeof(long*));
+    long** C = new long*[ALPHA_SIZE];
     //memset(C,-1,sizeof(C));
     for(int i = 0;i<ALPHA_SIZE;i++){
-        C[i] = (long *)malloc(c_size * sizeof(long));
+        C[i] = new long[c_size];
         memset(C[i],-1,c_size*sizeof(long));
     }
 
@@ -96,7 +96,12 @@ long ShiftOr(char* pattern, char* text, long** C){
     for(long i = 0;i<t_size;i++){
 
         int letter = text[i];
-        ShiftAndOr(window, C[letter], c_size);
+        if(letter < 0){
+            // printf("%d - %c,\n", letter, text[i]);
+            continue;
+        }
+        else
+            ShiftAndOr(window, C[letter], c_size);
 
         if((window[0] & set_i_1) == 0){
             ans++;
@@ -137,6 +142,10 @@ long WuManber(char* pattern, char* text, long** C, int r){
     for(long i = 0;i<t_size;i++){
 
         int letter = text[i];
+        if(letter < 0){
+            // printf("%d - %c,\n", letter, text[i]);
+            continue;
+        }
 
         for(int j =0;j<c_size;j++) aux[j] = old[0][j] = windows[0][j];
         ShiftAndOr(aux, C[letter], c_size);
