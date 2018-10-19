@@ -1,4 +1,12 @@
-#include <bits/stdc++.h>
+#include <iostream>
+#include <cstring>
+#include <tuple>
+#include <map>
+#include <set>
+#include <queue>
+#include <unordered_map>
+#include <vector>
+#include "algorithms.h"
 
 using namespace std;
 
@@ -93,7 +101,6 @@ int main() {
 	ios::sync_with_stdio(0); cin.tie(0);
 	string pattern = "adsasdasdasdlove", text;
 	auto  t = build_ukkonen_fsm(pattern, 8);
-	cout << "here" << endl;
 	ifstream infile;
 	infile.open("shakespeare.txt");
 	int ans = 0;
