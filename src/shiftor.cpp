@@ -160,7 +160,7 @@ long WuManber(char* pattern, char* text, long** C, int r){
             // And(windows[j], s2 , c_size);
             // And(windows[j], s3, c_size);
         }
-        if((windows[r][0] & set_i_1) == 0){
+        if(!(windows[r][0] & set_i_1)){
             ans++;
             //cout << "i: " << i << endl;
             // return true;

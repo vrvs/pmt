@@ -6,7 +6,7 @@
 
 using namespace std;
 
-enum Algorithm { Shift_Or, Wu_Manber, Aho_Corasick, Alg4, Undefined };
+enum Algorithm { Shift_Or, Wu_Manber, Aho_Corasick, Ukkonen, Undefined };
 
 string algorithm_name = "";
 Algorithm algorithm = Undefined;
@@ -27,7 +27,7 @@ void PrintHelp(){
 	cout << "     - ShiftOr" << endl;
 	cout << "     - AhoCorasick" << endl;
 	cout << "     - WuManber" << endl;
-	cout << "     - Alg4" << endl;
+	cout << "     - Ukkonen" << endl;
 	cout << "  -c, --count                       Weather set, prints just the total occurrences of the pattern(s)" << endl;
 }
 
@@ -88,8 +88,8 @@ void ProcessOptions(int argc, char **argv){
 					algorithm = Wu_Manber;
 				} else if (!algorithm_name.compare("AhoCorasick")) {
 					algorithm = Aho_Corasick;
-				} else if (!algorithm_name.compare("Alg4")) {
-					algorithm = Alg4;
+				} else if (!algorithm_name.compare("Ukkonen")) {
+					algorithm = Ukkonen;
 				} else {
 					PrintHelp();
 					exit(0);
@@ -147,7 +147,7 @@ void chooseAlgorithm(){
 			if(!edit_num)
 				algorithm = Aho_Corasick;
 			else
-				algorithm = Alg4;
+				algorithm = Ukkonen;
 		}
 	}
 }
@@ -155,62 +155,71 @@ void chooseAlgorithm(){
 void runPMT(){
 	long** C = NULL;
 	bool flag = false;
-	for(string pattern_string : patterns){
-		if((algorithm == Shift_Or) || (algorithm == Wu_Manber)){
-			C = buildMasks((char*)pattern_string.c_str());
-		}
-		for(string file_string : textfiles){
-			ifstream textfile(file_string);
-			string line;
-			long occ = 0;
-			long occ_count = 0;
+	long occ = 0;
+	long occ_count = 0;
 
-			if(!textfile.good()){
-				cout << "pmt: " << file_string << ": File doesn't exist" << endl;
-				continue;
+	if(algorithm != Aho_Corasick){
+		for(string pattern_string : patterns){
+			if((algorithm == Shift_Or) || (algorithm == Wu_Manber)){
+				C = buildMasks((char*)pattern_string.c_str());
+			} else {
+				// CONSTRUIR AS COISAS PARA O UKKONEN
 			}
 
-			while(getline(textfile, line)){
-				flag = false;
-				switch(algorithm){
-					case Shift_Or:
-						if((occ = ShiftOr((char*)pattern.c_str(), (char*)line.c_str(), C)))
-							flag = true;
-						break;
-					case Wu_Manber:
-						if((occ = WuManber((char*)pattern.c_str(), (char*)line.c_str(), C, edit_num)))
-							flag = true;
-						break;
-					case Aho_Corasick:
-						//Valdemiro coloca aqui a chamada pro aho-corasick
-						break;
-					case Alg4:
-						//Valdemiro coloca aqui a chamada pro alg4 (Ukkonen???)
-						break;
-					default:
-						break;
+			for(string file_string : textfiles){
+				ifstream textfile(file_string);
+				string line;
+
+				occ = 0;
+				occ_count = 0;
+
+				if(!textfile.good()){
+					cout << "pmt: " << file_string << ": File doesn't exist" << endl;
+					continue;
 				}
-				if(flag && !count_occ){
+
+				while(getline(textfile, line)){
+					flag = false;
+					switch(algorithm){
+						case Shift_Or:
+							if((occ = ShiftOr((char*)pattern.c_str(), (char*)line.c_str(), C)))
+								flag = true;
+							break;
+						case Wu_Manber:
+							if((occ = WuManber((char*)pattern.c_str(), (char*)line.c_str(), C, edit_num)))
+								flag = true;
+							break;
+						case Ukkonen:
+							//COLOCAR AQUI CHAMADA PARA O UKKONEN
+							break;
+						default:
+							break;
+					}
+					if(flag && !count_occ){
+						if(textfiles.size() > 1){
+							printf("%s: ", (char*)file_string.c_str());
+							//cout << file_string << ": ";
+						}
+						printf("%s\n", (char*)line.c_str());
+						// cout << line << endl;
+					}
+					occ_count += occ;
+				}
+				if(count_occ){
 					if(textfiles.size() > 1){
 						printf("%s: ", (char*)file_string.c_str());
-						//cout << file_string << ": ";
+						// cout << file_string << ": ";
 					}
-					printf("%s\n", (char*)line.c_str());
-					// cout << line << endl;
+					printf("%ld\n", occ_count);
+					// cout << occ_count << endl;
 				}
-				occ_count += occ;
 			}
-			if(count_occ){
-				if(textfiles.size() > 1){
-					printf("%s: ", (char*)file_string.c_str());
-					// cout << file_string << ": ";
-				}
-				printf("%ld\n", occ_count);
-				// cout << occ_count << endl;
-			}
+			if(C!=NULL)
+				delete [] C;
 		}
-		if(C!=NULL)
-			delete [] C;
+	} else {
+		// CONSTROI AS COISAS PARA O AHO COM O patterns
+		// ITERA SOBRE CADA ARQUIVO CHAMANDO O AHO PARA CADA LINHA DE CADA ARQUIVO
 	}
 }
 
