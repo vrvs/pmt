@@ -2,6 +2,11 @@
 #include <fstream>
 #include <getopt.h>
 #include <vector>
+#include <tuple>
+#include <map>
+#include <set>
+#include <unordered_map>
+#include <string>
 #include "algorithms.h"
 
 using namespace std;
@@ -153,73 +158,139 @@ void chooseAlgorithm(){
 }
 
 void runPMT(){
-	long** C = NULL;
+	long** C[patterns.size()];
 	bool flag = false;
-	long occ = 0;
-	long occ_count = 0;
-
-	if(algorithm != Aho_Corasick){
+	long occ[patterns.size()];
+	long occ_count[patterns.size()];
+	tuple< unordered_map<int, int>, vector<int> , set<int> >ukkonen_fsm[patterns.size()];
+	tuple< unordered_map< int ,int>, vector<int> , unordered_map< int ,int>, vector<int>, unordered_map<int, set<int> >> aho_corasick_fsm;
+	
+	for(int i=0; i < patterns.size(); i++) {
+		C[i] = NULL;
+		occ[i] = 0;
+		occ_count[i] = 0;
+	}
+	
+	if(algorithm != Aho_Corasick){ 
+		int i = 0;
 		for(string pattern_string : patterns){
 			if((algorithm == Shift_Or) || (algorithm == Wu_Manber)){
-				C = buildMasks((char*)pattern_string.c_str());
+				C[i] = buildMasks((char*)pattern_string.c_str());
 			} else {
 				// CONSTRUIR AS COISAS PARA O UKKONEN
+				ukkonen_fsm[i] = build_ukkonen_fsm(pattern_string, edit_num);
+			}
+			i++;
+		}
+
+		for(string file_string : textfiles){
+			ifstream textfile(file_string);
+			string line;
+
+			memset(occ, 0ll, sizeof(occ));
+			memset(occ_count,0ll, sizeof(occ_count));
+
+			if(!textfile.good()){
+				cout << "pmt: " << file_string << ": File doesn't exist" << endl;
+				continue;
 			}
 
-			for(string file_string : textfiles){
-				ifstream textfile(file_string);
-				string line;
-
-				occ = 0;
-				occ_count = 0;
-
-				if(!textfile.good()){
-					cout << "pmt: " << file_string << ": File doesn't exist" << endl;
-					continue;
-				}
-
-				while(getline(textfile, line)){
-					flag = false;
+			while(getline(textfile, line)){
+				flag = false;
+				int i = 0;
+				for(string pattern : patterns) {
 					switch(algorithm){
 						case Shift_Or:
-							if((occ = ShiftOr((char*)pattern.c_str(), (char*)line.c_str(), C)))
+							if((occ[i] = ShiftOr((char*)pattern.c_str(), (char*)line.c_str(), C[i])))
 								flag = true;
 							break;
 						case Wu_Manber:
-							if((occ = WuManber((char*)pattern.c_str(), (char*)line.c_str(), C, edit_num)))
+							if((occ[i] = WuManber((char*)pattern.c_str(), (char*)line.c_str(), C[i], edit_num)))
 								flag = true;
 							break;
 						case Ukkonen:
-							//COLOCAR AQUI CHAMADA PARA O UKKONEN
+							if((occ[i] = ukkonen((char*)line.c_str(), 0, get<0>(ukkonen_fsm[i]), get<1>(ukkonen_fsm[i]), get<2>(ukkonen_fsm[i]))))
+								flag = true;
 							break;
 						default:
 							break;
 					}
-					if(flag && !count_occ){
-						if(textfiles.size() > 1){
-							printf("%s: ", (char*)file_string.c_str());
-							//cout << file_string << ": ";
-						}
-						printf("%s\n", (char*)line.c_str());
-						// cout << line << endl;
-					}
-					occ_count += occ;
+					occ_count[i] += occ[i];
+					i++;
 				}
-				if(count_occ){
+				if(flag && !count_occ){
 					if(textfiles.size() > 1){
 						printf("%s: ", (char*)file_string.c_str());
-						// cout << file_string << ": ";
+						//cout << file_string << ": ";
 					}
-					printf("%ld\n", occ_count);
-					// cout << occ_count << endl;
+					printf("%s\n", (char*)line.c_str());
+					// cout << line << endl;
 				}
 			}
-			if(C!=NULL)
-				delete [] C;
+			if(count_occ){
+				long sum = 0ll;
+				if(textfiles.size() > 1){
+					printf("%s: ", (char*)file_string.c_str());
+					// cout << file_string << ": ";
+				}
+				for(int i=0; i < patterns.size(); i++) {
+					sum += occ_count[i];
+					printf("(%s %ld) ", (char*)patterns[i].c_str(), occ_count[i]);
+				}
+				printf("= (%ld)\n", sum);
+				// cout << occ_count << endl;
+			}
 		}
+		for(int i=0; i < patterns.size(); i++) {
+			if(C[i]!=NULL)
+				delete [] C[i];
+		}
+
 	} else {
 		// CONSTROI AS COISAS PARA O AHO COM O patterns
+		aho_corasick_fsm = build_aho_corasick(patterns);
 		// ITERA SOBRE CADA ARQUIVO CHAMANDO O AHO PARA CADA LINHA DE CADA ARQUIVO
+		for(string file_string : textfiles){
+			ifstream textfile(file_string);
+			string line;
+
+			vector<long> occ_count(patterns.size(), 0);
+
+			if(!textfile.good()){
+				cout << "pmt: " << file_string << ": File doesn't exist" << endl;
+				continue;
+			}
+
+			while(getline(textfile, line)){
+				flag = false;
+				if(!count_occ){
+					flag = aho_corasick((char*)line.c_str(), 0, get<0>(aho_corasick_fsm), get<1>(aho_corasick_fsm), get<2>(aho_corasick_fsm), get<3>(aho_corasick_fsm), get<4>(aho_corasick_fsm));
+				} else {
+					aho_corasick((char*)line.c_str(), 0, occ_count, get<0>(aho_corasick_fsm), get<1>(aho_corasick_fsm), get<2>(aho_corasick_fsm), get<3>(aho_corasick_fsm), get<4>(aho_corasick_fsm));
+				}
+				if(flag) {
+					if(textfiles.size() > 1){
+						printf("%s: ", (char*)file_string.c_str());
+						//cout << file_string << ": ";
+					}
+					printf("%s\n", (char*)line.c_str());
+					// cout << line << endl;
+				}
+			}
+			if(count_occ){
+				long sum = 0ll;
+				if(textfiles.size() > 1){
+					printf("%s: ", (char*)file_string.c_str());
+					// cout << file_string << ": ";
+				}
+				for(int i=0; i<occ_count.size(); i++) {
+					sum += occ_count[i];
+					printf("(%s %ld) ", (char*)patterns[i].c_str(), occ_count[i]);
+				}
+				printf("= (%ld)\n", sum);
+				// cout << occ_count << endl;
+			}
+		}
 	}
 }
 

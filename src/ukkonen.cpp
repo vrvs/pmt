@@ -13,7 +13,7 @@ using namespace std;
 const int alphabet_size = 128, arr_size = 200000;
 
 
-int hash_pair(int index, int  c) {
+int hash_pair_u(int index, int  c) {
 	return ((index*alphabet_size)+c);
 }
 
@@ -75,28 +75,30 @@ tuple< unordered_map<int, int>, vector<int> , set<int> > build_ukkonen_fsm(strin
 					F.insert(i);
 				}
 			}
-			insert_T(hash_pair(Q[S], a), Q[S_l], T, T_arr);
+			insert_T(hash_pair_u(Q[S], a), Q[S_l], T, T_arr);
 		}
 	}
 	return make_tuple( T, T_arr, F);
 }
 
-int ukkonen(string text, int line, unordered_map<int, int> &T, vector<int>  &T_arr, set<int> &F) {
-	int index, occ = 0, n = text.size(), s = 0;
+long ukkonen(string text, int line, unordered_map<int, int> &T, vector<int>  &T_arr, set<int> &F) {
+	int n = text.size(), s = 0;
+	long occ = 0;
 	if(F.count(s)) {
-		cout << "ocorrence at line " << line << " at position " << s << '\n';
+		//cout << "ocorrence at line " << line << " at position " << s << '\n';
 		occ++;
 	}
 	for(int i = 0; i < n; i++) {
-		s = get_T(hash_pair(s,text[i]), T, T_arr);
+		s = get_T(hash_pair_u(s,text[i]), T, T_arr);
 		if(F.count(s)) {
-			cout << "ocorrence at line " << line << " at position " << i << '\n';
+			//cout << "ocorrence at line " << line << " at position " << i << '\n';
 			occ++;
 		}
 	}
 	return occ;
 }
 
+/*
 int main() {
 	ios::sync_with_stdio(0); cin.tie(0);
 	string pattern = "adsasdasdasdlove", text;
@@ -112,4 +114,4 @@ int main() {
 	cout << "\n" << "Occorrences: " << ans << "\n";
 	infile.close();
 	return 0;
-}
+}*/

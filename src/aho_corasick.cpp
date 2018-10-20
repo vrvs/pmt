@@ -123,7 +123,7 @@ tuple< unordered_map< int ,int>, vector<int> , unordered_map< int ,int>, vector<
 	return make_tuple(go_to, go_to_arr, failure, failure_arr, output);
 }
 
-vector<int> aho_corasick(string text, int line, vector<int> &ans, unordered_map< int ,int> &go_to, vector<int> &go_to_arr, unordered_map< int ,int> &failure, vector<int> &failure_arr, unordered_map<int, set<int> > &output) {
+vector<long> aho_corasick(string text, int line, vector<long> &ans, unordered_map< int ,int> &go_to, vector<int> &go_to_arr, unordered_map< int ,int> &failure, vector<int> &failure_arr, unordered_map<int, set<int> > &output) {
 	
 	int n = text.size(), state = 0;
 
@@ -162,6 +162,7 @@ bool aho_corasick(string text, int line, unordered_map< int ,int> &go_to, vector
 	return false;
 }
 
+/*
 int main() {
 	ios::sync_with_stdio(0); cin.tie(0);
 	vector<string> patterns = {"lovely"};
@@ -190,4 +191,4 @@ int main() {
 	}
 	infile.close();
 	return 0;
-}
+}*/
