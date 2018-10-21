@@ -131,6 +131,16 @@ void ProcessParameters(int argc, char** argv){
 			args_index += 1;
 			patterns.push_back(pattern);
 		}
+		vector<string> aux(0);
+		for(string pattern : patterns){
+			if(edit_num >= (int)pattern.size()){
+				printf("pmt: The pattern \"%s\" must be bigger than the edit number...\n", (char*)pattern.c_str());
+				continue;
+			}
+			aux.push_back(pattern);
+		}
+		patterns = aux;
+		aux.clear();
 		
 		for(int i = args_index;i<argc;i++){
 			textfiles.push_back(argv[i]);
@@ -245,7 +255,8 @@ void runPMT(){
 					sum += occ_count[i];
 					printf("(%s %ld) ", (char*)patterns[i].c_str(), occ_count[i]);
 				}
-				printf("= (%ld)\n", sum);
+				if(patterns.size() > 0)
+					printf("= (%ld)\n", sum);
 				// cout << occ_count << endl;
 			}
 		}
