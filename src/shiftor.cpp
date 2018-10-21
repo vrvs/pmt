@@ -96,7 +96,7 @@ long ShiftOr(char* pattern, char* text, long** C){
     for(long i = 0;i<t_size;i++){
 
         int letter = text[i];
-        if(letter < 0){
+        if(letter < 0 || letter > 255){
             // printf("%d - %c,\n", letter, text[i]);
             continue;
         }
@@ -124,13 +124,25 @@ long WuManber(char* pattern, char* text, long** C, int r){
     long old[r+1][c_size];
     memset(windows,-1,sizeof(windows));
     memset(old,-1,sizeof(old));
-    for(int i  =0;i<r+1;i++){
+    int k = c_size-1;
+    long shift_num = 0;
+    for(int i=0;i<r+1;i++){
         // windows[i] =  (long *)malloc(c_size * sizeof(long));
         // old[i] =  (long *)malloc(c_size * sizeof(long));
         // memset(old[i],-1,c_size*sizeof(long));
         // memset(windows[i],-1,c_size*sizeof(long));
-        if(i>0)
-            windows[i][c_size-1] = -2;
+        if(i>0){
+            for(int j = c_size-1;j>k;j--){
+                windows[i][j] = 0;
+            }
+            windows[i][k] = -1;
+            windows[i][k] <<= shift_num;
+        }
+        if(shift_num == 64){
+            k--;
+            shift_num = 1;
+        }
+        shift_num++;
     }
     long aux[c_size];
     long s1[c_size];
@@ -142,7 +154,7 @@ long WuManber(char* pattern, char* text, long** C, int r){
     for(long i = 0;i<t_size;i++){
 
         int letter = text[i];
-        if(letter < 0){
+        if(letter < 0 || letter > 255){
             // printf("%d - %c,\n", letter, text[i]);
             continue;
         }
