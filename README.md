@@ -28,6 +28,10 @@ Como por exemplo:
 $ ./pmt love shakespeare.txt
 ```
 
+### Cleaning Project
+
+Para limpar (clean) o projeto, basta utilizar o comando *make clean* no diretório *pmt/*. Utilizar este comando significa apagar o diretório *bin* e todos os arquivos contidos nele. 
+
 ### Opções
 
 A ferramenta pmt suporta uma série de opções descritas abaixo:
