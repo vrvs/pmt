@@ -21,7 +21,7 @@ $ cd ..
 ### Rodando
 
 Para rodar a ferramenta pmt basta ir ao diretório *bin* através do comando 'cd bin' e rodar a ferramenta, seguindo seu caso geral de uso:
-$ ./pmt [Opções] padrão arquivo1 [arquivo2...]
+- $ ./pmt [Opções] padrão arquivo1 [arquivo2...]
 
 Como por exemplo:
 ```
@@ -34,12 +34,11 @@ A ferramenta pmt suporta uma série de opções descritas abaixo:
 
 * -e, --edit e-max: Realiza o casamento aproximado de padrão com uma distância de edição máxima de e-max;
 * -p, --pattern arquivoDePadrao: A ferramenta suporta o recebimento de um arquivo que definem os padrões. Cada padrão deve ser colocado numa linha do arquivo arquivoDePadrao. **Ao utilizar esta opção, não se deve passar o padrão como argumento.**
-* -a, --algorithm nomeAlgoritmo: É uma opção para a escolha do algoritmo que deseja ser utilizado. Dentre as opções tem-se:
+* -a, --algorithm nomeAlgoritmo: É uma opção para a escolha do algoritmo que deseja ser utilizado. Ao escolher esta opção deve-se passar o nome do algoritmo **respeitando letras maiúsculas e minúsculas.** Dentre as opções tem-se:
     - ShiftOr - Algoritmo para casamento exato do padrão;
     - AhoCorasick - Segundo algoritmo para casamento exato;
     - WuManber - Algoritmo para casamento aproximado do padrão;
     - Ukkonen - Segundo algoritmo para casamento aproximado do padrão;
-Ao escolher esta opção deve-se passar o nome do algoritmo **respeitando letras maiúsculas e minúsculas.**
 * -c, --count: Esta opção não recebe argumento, e quando ativada imprime somente a quantidade de ocorrências encontradas do(s) padrão(ões) no(s) texto(s);
 * -h, --help: Imprime estas opções; 
 
