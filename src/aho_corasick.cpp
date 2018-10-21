@@ -134,7 +134,7 @@ vector<long> aho_corasick(string text, int line, vector<long> &ans, unordered_ma
 		state = get_go_to(hash_pair(state, text[i]), go_to, go_to_arr);
 		if(!output[state].empty()) {
 			//cout << "ocorrence at line " << line << " at position " << i << " of patterns ";
-			int i = 0;
+			//int i = 0;
 			for(auto out : output[state]) {
 				//if(i++ > 0) cout << ", ";
 				//cout << get_string[out];
