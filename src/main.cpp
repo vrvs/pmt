@@ -7,6 +7,7 @@
 #include <set>
 #include <unordered_map>
 #include <string>
+#include <cstring>
 #include "algorithms.h"
 
 using namespace std;
@@ -17,6 +18,7 @@ string algorithm_name = "";
 Algorithm algorithm = Undefined;
 string patternfile = "";
 bool count_occ = false;
+bool use_pattern_file = false;
 int edit_num = 0;
 string pattern = "";
 vector<string> textfiles = vector<string>(0);
@@ -77,7 +79,11 @@ void ProcessOptions(int argc, char **argv){
 			case 'p':
 				patternfile = optarg;
 				p_file.open(patternfile);
-				
+
+				if(!p_file.good()){
+					throw "pmt: " + patternfile + ": File doesn't exist";
+				}
+				use_pattern_file = true;
 				while(getline(p_file,cur_patt))
 					patterns.push_back(cur_patt);
 				p_file.close();
@@ -119,10 +125,12 @@ void ProcessOptions(int argc, char **argv){
 }
 
 void ProcessParameters(int argc, char** argv){
-	if(args_index+1 < argc){
-		pattern = argv[args_index];
-		args_index += 1;
-		patterns.push_back(pattern);
+	if((!use_pattern_file && args_index+1 < argc) || (use_pattern_file && args_index < argc)){
+		if(!use_pattern_file){
+			pattern = argv[args_index];
+			args_index += 1;
+			patterns.push_back(pattern);
+		}
 		
 		for(int i = args_index;i<argc;i++){
 			textfiles.push_back(argv[i]);
@@ -165,7 +173,7 @@ void runPMT(){
 	tuple< unordered_map<int, int>, vector<int> , set<int> >ukkonen_fsm[patterns.size()];
 	tuple< unordered_map< int ,int>, vector<int> , unordered_map< int ,int>, vector<int>, unordered_map<int, set<int> >> aho_corasick_fsm;
 	
-	for(int i=0; i < patterns.size(); i++) {
+	for(unsigned int i=0; i < patterns.size(); i++) {
 		C[i] = NULL;
 		occ[i] = 0;
 		occ_count[i] = 0;
@@ -233,7 +241,7 @@ void runPMT(){
 					printf("%s: ", (char*)file_string.c_str());
 					// cout << file_string << ": ";
 				}
-				for(int i=0; i < patterns.size(); i++) {
+				for(unsigned int i=0; i < patterns.size(); i++) {
 					sum += occ_count[i];
 					printf("(%s %ld) ", (char*)patterns[i].c_str(), occ_count[i]);
 				}
@@ -241,7 +249,7 @@ void runPMT(){
 				// cout << occ_count << endl;
 			}
 		}
-		for(int i=0; i < patterns.size(); i++) {
+		for(unsigned int i=0; i < patterns.size(); i++) {
 			if(C[i]!=NULL)
 				delete [] C[i];
 		}
@@ -283,7 +291,7 @@ void runPMT(){
 					printf("%s: ", (char*)file_string.c_str());
 					// cout << file_string << ": ";
 				}
-				for(int i=0; i<occ_count.size(); i++) {
+				for(unsigned int i=0; i<occ_count.size(); i++) {
 					sum += occ_count[i];
 					printf("(%s %ld) ", (char*)patterns[i].c_str(), occ_count[i]);
 				}
