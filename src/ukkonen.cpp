@@ -10,10 +10,11 @@
 
 using namespace std;
 
-const int alphabet_size = 128, arr_size = 200000;
+const int alphabet_size = 256, arr_size = 200000;
 
 
 int hash_pair_u(int index, int  c) {
+	if(c<0 || c >= alphabet_size) return 0;
 	return ((index*alphabet_size)+c);
 }
 
