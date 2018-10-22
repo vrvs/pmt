@@ -11,7 +11,7 @@
 
 using namespace std;
 
-const int alphabet_size = 128, arr_size = 200000;
+const int alphabet_size = 256 , arr_size = 200000;
 
 // go_to: int key
 // state = floor(key/alphabet_size)
@@ -44,6 +44,7 @@ int get_failure(int key, unordered_map< int ,int> &failure, vector<int> &failure
 }
 
 int hash_pair(int state, int  c) {
+	if(c<0 || c >= alphabet_size) return 0;
 	return ((state*alphabet_size)+c);
 }
 

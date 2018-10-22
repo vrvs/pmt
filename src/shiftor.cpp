@@ -50,7 +50,7 @@ inline void ShiftAndOr(long* w, long* c, int c_size){
     w[0] <<= 1l;
     for(int i = 1;i<c_size;i++){
         w[i-1] |= (w[i] < 0) ? 1l : 0l;
-        w[i-1] |= c[i-1]; //OR
+        w[i-1] |= c[i-1]; 
         w[i] <<= 1l; 
     }
     w[c_size-1] |= c[c_size-1];
@@ -60,7 +60,7 @@ long** buildMasks(char* pattern){
     int p_size = strlen(pattern);
     int c_size = ((p_size - 1) >> 6) + 1;
     long** C = new long*[ALPHA_SIZE];
-    //memset(C,-1,sizeof(C));
+    
     for(int i = 0;i<ALPHA_SIZE;i++){
         C[i] = new long[c_size];
         memset(C[i],-1,c_size*sizeof(long));
@@ -97,19 +97,14 @@ long ShiftOr(char* pattern, char* text, long** C){
 
         int letter = text[i];
         if(letter < 0 || letter > 255){
-            // printf("%d - %c,\n", letter, text[i]);
             continue;
         }
-        else
-            ShiftAndOr(window, C[letter], c_size);
+        ShiftAndOr(window, C[letter], c_size);
 
         if((window[0] & set_i_1) == 0){
             ans++;
-            //printf("%d\n", (i-p_size+1));
-            //return true;
         }
     }
-    //delete [] window;
     return ans;
 }
 
@@ -127,10 +122,6 @@ long WuManber(char* pattern, char* text, long** C, int r){
     int k = c_size-1;
     long shift_num = 0;
     for(int i=0;i<r+1;i++){
-        // windows[i] =  (long *)malloc(c_size * sizeof(long));
-        // old[i] =  (long *)malloc(c_size * sizeof(long));
-        // memset(old[i],-1,c_size*sizeof(long));
-        // memset(windows[i],-1,c_size*sizeof(long));
         if(i>0){
             for(int j = c_size-1;j>k;j--){
                 windows[i][j] = 0;
@@ -155,7 +146,6 @@ long WuManber(char* pattern, char* text, long** C, int r){
 
         int letter = text[i];
         if(letter < 0 || letter > 255){
-            // printf("%d - %c,\n", letter, text[i]);
             continue;
         }
 
@@ -172,14 +162,9 @@ long WuManber(char* pattern, char* text, long** C, int r){
                 s2[k] = windows[j-1][k];
                 s3[k] = s1[k];
             }
-            // Shift(s2,c_size);
-            // Shift(s3,c_size);
             Shift2(s2,s3,c_size);
             ShiftAndOr(windows[j], C[letter], c_size);
             And4(windows[j], s1, s2, s3, c_size);
-            // And(windows[j], s1, c_size);
-            // And(windows[j], s2 , c_size);
-            // And(windows[j], s3, c_size);
         }
         if(!(windows[r][0] & set_i_1)){
             ans++;
@@ -187,9 +172,6 @@ long WuManber(char* pattern, char* text, long** C, int r){
             // return true;
         }
     }
-    
-    // delete [] windows;
-    // delete s1; delete s2; delete s3; delete aux;
     return ans;
 }
 
