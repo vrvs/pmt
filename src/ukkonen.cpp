@@ -10,7 +10,7 @@
 
 using namespace std;
 
-const int alphabet_size = 256, arr_size = 200000;
+const int alphabet_size = 256 , arr_size = 200000;
 
 
 int hash_pair_u(int index, int  c) {

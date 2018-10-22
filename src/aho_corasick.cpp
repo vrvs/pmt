@@ -11,7 +11,7 @@
 
 using namespace std;
 
-const int alphabet_size = 256, arr_size = 200000;
+const int alphabet_size = 256 , arr_size = 200000;
 
 // go_to: int key
 // state = floor(key/alphabet_size)
