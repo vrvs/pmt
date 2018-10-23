@@ -66,29 +66,26 @@ void ProcessOptions(int argc, char **argv){
 				try {
 					edit_num = stoi(optarg);
 				} catch (const exception &err) {
-					throw "The edit number must be an integer.";
+					throw "pmt: The edit number must be an integer.";
 				}
 
 				if(edit_num < 0){
-					throw "The edit number can't be less than zero.";
+					throw "pmt: The edit number can't be less than zero.";
 				}
 
-				//cout << "edit number: " << edit_num << endl;
 				break;
 
 			case 'p':
 				patternfile = optarg;
 				p_file.open(patternfile);
-
-				if(!p_file.good()){
-					throw "pmt: " + patternfile + ": File doesn't exist";
-				}
+				if(!p_file.good())
+					throw "pmt: Pattern file doesn't exist";
+					
 				use_pattern_file = true;
 				while(getline(p_file,cur_patt))
 					patterns.push_back(cur_patt);
 				p_file.close();
 
-				//cout << "pattern file: " << patternfile << endl;
 				break;
 
 			case 'a':
@@ -102,11 +99,8 @@ void ProcessOptions(int argc, char **argv){
 				} else if (!algorithm_name.compare("Ukkonen")) {
 					algorithm = Ukkonen;
 				} else {
-					PrintHelp();
-					exit(0);
+					throw "pmt: Algorithm choice doesn't exist";
 				}
-
-				//cout << "using algorithm: " << algorithm_name << endl;
 				break;
 				
 			case 'c':
@@ -145,15 +139,7 @@ void ProcessParameters(int argc, char** argv){
 		for(int i = args_index;i<argc;i++){
 			textfiles.push_back(argv[i]);
 		}
-		
-		/*cout << "The pattern is: " << pattern << endl;
-		cout << "The text files are: " << endl; 
-		for(auto it = textfiles.begin();it!=textfiles.end();it++){
-			cout << "- " << *it << endl;
-		}*/
 	} else {
-		//TODO raise error "there isnt enough arguments"
-		//cout << "There isn't enough arguments" << endl;
 		PrintHelp();
 		exit(0);
 	}
@@ -161,16 +147,11 @@ void ProcessParameters(int argc, char** argv){
 
 void chooseAlgorithm(){
 	if(algorithm == Undefined){
-		if(patterns.size() == 1){
-			if(!edit_num)
+		if(!edit_num){
+			if(patterns.size() < 3)
 				algorithm = Shift_Or;
 			else
-				algorithm = Wu_Manber;
-		} else {
-			if(!edit_num)
 				algorithm = Aho_Corasick;
-			else
-				algorithm = Ukkonen;
 		}
 	}
 }
@@ -195,28 +176,36 @@ void runPMT(){
 			if((algorithm == Shift_Or) || (algorithm == Wu_Manber)){
 				C[i] = buildMasks((char*)pattern_string.c_str());
 			} else {
-				// CONSTRUIR AS COISAS PARA O UKKONEN
 				ukkonen_fsm[i] = build_ukkonen_fsm(pattern_string, edit_num);
 			}
 			i++;
 		}
 
 		for(string file_string : textfiles){
-			ifstream textfile(file_string);
+			ifstream textfile;
+			textfile.open(file_string);
+			if(!textfile.is_open()){
+				printf("pmt: %s: Text file doesn't exist\n", (char*)file_string.c_str());
+				continue;
+			}
+				
 			string line;
 
 			memset(occ, 0ll, sizeof(occ));
 			memset(occ_count,0ll, sizeof(occ_count));
 
-			if(!textfile.good()){
-				cout << "pmt: " << file_string << ": File doesn't exist" << endl;
-				continue;
-			}
-
 			while(getline(textfile, line)){
 				flag = false;
 				int i = 0;
 				for(string pattern : patterns) {
+					//define algorithm by pattern
+					if(algorithm == Undefined){
+						if(pattern.size() <= 50)
+							algorithm = Ukkonen;
+						else
+							algorithm = Wu_Manber;
+					}
+
 					switch(algorithm){
 						case Shift_Or:
 							if((occ[i] = ShiftOr((char*)pattern.c_str(), (char*)line.c_str(), C[i])))
@@ -239,17 +228,14 @@ void runPMT(){
 				if(flag && !count_occ){
 					if(textfiles.size() > 1){
 						printf("%s: ", (char*)file_string.c_str());
-						//cout << file_string << ": ";
 					}
 					printf("%s\n", (char*)line.c_str());
-					// cout << line << endl;
 				}
 			}
 			if(count_occ){
 				long sum = 0ll;
 				if(textfiles.size() > 1){
 					printf("%s: ", (char*)file_string.c_str());
-					// cout << file_string << ": ";
 				}
 				for(unsigned int i=0; i < patterns.size(); i++) {
 					sum += occ_count[i];
@@ -257,8 +243,8 @@ void runPMT(){
 				}
 				if(patterns.size() > 0)
 					printf("= (%ld)\n", sum);
-				// cout << occ_count << endl;
 			}
+			textfile.close();
 		}
 		for(unsigned int i=0; i < patterns.size(); i++) {
 			if(C[i]!=NULL)
@@ -266,19 +252,18 @@ void runPMT(){
 		}
 
 	} else {
-		// CONSTROI AS COISAS PARA O AHO COM O patterns
 		aho_corasick_fsm = build_aho_corasick(patterns);
-		// ITERA SOBRE CADA ARQUIVO CHAMANDO O AHO PARA CADA LINHA DE CADA ARQUIVO
+		
 		for(string file_string : textfiles){
-			ifstream textfile(file_string);
+			ifstream textfile;
+			textfile.open(file_string);
+			if(!textfile.is_open()){
+				printf("pmt: %s: Text file doesn't exist\n", (char*)file_string.c_str());
+				continue;
+			}
 			string line;
 
 			vector<long> occ_count(patterns.size(), 0);
-
-			if(!textfile.good()){
-				cout << "pmt: " << file_string << ": File doesn't exist" << endl;
-				continue;
-			}
 
 			while(getline(textfile, line)){
 				flag = false;
@@ -290,25 +275,22 @@ void runPMT(){
 				if(flag) {
 					if(textfiles.size() > 1){
 						printf("%s: ", (char*)file_string.c_str());
-						//cout << file_string << ": ";
 					}
 					printf("%s\n", (char*)line.c_str());
-					// cout << line << endl;
 				}
 			}
 			if(count_occ){
 				long sum = 0ll;
 				if(textfiles.size() > 1){
 					printf("%s: ", (char*)file_string.c_str());
-					// cout << file_string << ": ";
 				}
 				for(unsigned int i=0; i<occ_count.size(); i++) {
 					sum += occ_count[i];
 					printf("(%s %ld) ", (char*)patterns[i].c_str(), occ_count[i]);
 				}
 				printf("= (%ld)\n", sum);
-				// cout << occ_count << endl;
 			}
+			textfile.close();
 		}
 	}
 }
@@ -324,24 +306,6 @@ int main(int argc, char **argv){
 		cout << "error: " << msg << endl;
 		exit(0);
 	}
-
-	/*ifstream file1(textfiles[0]);
-	string text;
-	
-	long** C = buildMasks((char*)pattern.c_str()());
-
-	while(getline(file1, text)){
-
-		// need to use switch????
-		if(!algorithm_name.compare("ShiftOr")){
-			if(ShiftOr((char*)pattern.c_str(), (char*)text.c_str(), C))
-				cout << text << endl;
-		} else if(!algorithm_name.compare("WuManber")){
-			if(WuManber((char*)pattern.c_str(), (char*)text.c_str(), C, edit_num))
-				cout << text << endl;
-		}
-		
-	}*/
 
 	return 0;
 }

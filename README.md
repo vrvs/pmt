@@ -9,12 +9,16 @@ Para este projeto você somente necessita de um compilador para c++. Porém faci
 ### Instalando
 
 Para instalar a ferramenta você pode utilizar duas maneiras:
-* Se possuir a ferramenta **make** instalada basta digitar o comando *make* no diretório pmt/ que será instalado automaticamente.
+* Se possuir a ferramenta **make** instalada basta digitar o comando *make* no diretório *pmt/* que será instalado automaticamente.
 * Se não possuir o comando make basta seguir estes comandos a partir do diretório pmt/:
 ```
 $ mkdir bin
 $ cd src
-$ g++ shiftor.cpp aho_corasick.cpp ukkonen.cpp main.cpp -o ../bin/pmt
+$ g++ -std=c++14 -Wall -O3 -c shiftor.cpp -o ../bin/shiftor.o
+$ g++ -std=c++14 -Wall -O3 -c aho_corasick.cpp -o ../bin/aho_corasick.o
+$ g++ -std=c++14 -Wall -O3 -c ukkonen.cpp -o ../bin/ukkonen.o
+$ g++ -std=c++14 -Wall -O3 -c main.cpp -o ../bin/main.o
+$ g++ -std=c++14 -Wall -O3 ../bin/shiftor.o ../bin/aho_corasick.o ../bin/ukkonen.o ../bin/main.o -o ../bin/pmt
 $ cd ..
 ```
 
